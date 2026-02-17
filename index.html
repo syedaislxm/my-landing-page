@@ -688,7 +688,7 @@ html,body{
 
 <!-- BACKGROUND MUSIC -->
 <audio id="bg-music" loop preload="auto">
-  <source src="geoffharvey-hiding-place-in-the-forest-111724.mp3" type="audio/mpeg">
+  <source src="https://cdn.pixabay.com/audio/2022/10/16/audio_a4e2b3e63b.mp3" type="audio/mpeg">
 </audio>
 
 <!-- MUTE TOGGLE -->
@@ -1254,24 +1254,33 @@ function launchConfetti(){
 const music = document.getElementById('bg-music');
 music.volume = 0.35;
 
-// Autoplay on first interaction (browser policy requires user gesture)
 let musicStarted = false;
+
 function tryStartMusic(){
   if(musicStarted) return;
-  musicStarted = true;
-  music.play().catch(()=>{});
+  const p = music.play();
+  if(p !== undefined){
+    p.then(()=>{ musicStarted = true; })
+     .catch(()=>{ musicStarted = false; });
+  } else {
+    musicStarted = true;
+  }
 }
-document.addEventListener('touchend', tryStartMusic, {once:false});
-document.addEventListener('click',    tryStartMusic, {once:false});
-document.addEventListener('keydown',  tryStartMusic, {once:false});
+
+document.addEventListener('touchstart', tryStartMusic, {passive:true});
+document.addEventListener('touchend',   tryStartMusic, {passive:true});
+document.addEventListener('click',      tryStartMusic);
+document.addEventListener('keydown',    tryStartMusic);
 
 function toggleMute(){
   const btn = document.getElementById('mute-btn');
   if(music.paused){
-    music.play();
-    btn.textContent = '♪ ON';
-    btn.style.color = '#7ab870';
-    btn.style.borderColor = '#7ab870';
+    music.play().then(()=>{
+      musicStarted = true;
+      btn.textContent = '♪ ON';
+      btn.style.color = '#7ab870';
+      btn.style.borderColor = '#7ab870';
+    }).catch(()=>{});
   } else {
     music.pause();
     btn.textContent = '♪ OFF';
