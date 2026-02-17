@@ -701,11 +701,11 @@ html,body{
 
 <!-- ACTION BUTTONS (scene 4) -->
 <div id="action-btns">
-  <button class="px-btn" id="btn-yes" onclick="sayYes()">[ YES!! 🌻 ]</button>
+  <button class="px-btn" id="btn-yes" onclick="sayYes()">[ YES!! ]</button>
 </div>
 
 <!-- NO BUTTON (fixed, dodges) -->
-<button id="btn-no">[ NO 🐸 ]</button>
+<button id="btn-no">[ NO ]</button>
 
 <!-- YES SCREEN -->
 <div id="yes-screen">
@@ -734,6 +734,7 @@ const W  = '#b8e890';  // eye white
 const EP = '#111';     // pupil
 const RD = '#b84040';  // mouth/blush
 const TN = '#c8a060';  // tongue/belly tan
+const BG = '#C4A484'; // Reading Glasses
 
 // 24×24 BASE sitting frog
 const B24 = [
@@ -796,6 +797,14 @@ HAPPY[2]  = [_,_,_,DG,LG,LG,LG,DG,_,_,_,_,_,DG,LG,LG,LG,DG,_,_,_,_,_,_];
 HAPPY[3]  = [_,_,_,DG,DG,DG,DG,DG,_,_,_,_,_,DG,DG,DG,DG,DG,_,_,_,_,_,_];
 HAPPY[7]  = [_,_,DG,G,RD,RD,RD,RD,G,G,G,G,G,RD,RD,RD,RD,G,DG,_,_,_,_,_];
 HAPPY[11] = [_,DG,G,DG,G,TN,TN,G,TN,G,G,G,TN,G,TN,TN,G,DG,G,G,DG,_,_,_];
+
+// GLASSES: Glasses on
+const GLASSES = B24.map(r=>[...r]);
+READING[1] = [_,_,_,_,BG,BG,BG,_,_,_,_,_,_,_,BG,BG,BG,_,_,_,_,_,_,_],
+READING[2] = [_,_,_,BG,G,G,G,BG,_,_,_,_,_,BG,G,G,G,BG,_,_,_,_,_,_],
+READING[3] = [_,_,_,BG,W,EP,G,BG,_,_,_,_,_,BG,G,EP,W,BG,_,_,_,_,_,_],
+READING[4] = [_,_,DG,BG,BG,BG,BG,BG,BG,BG,BG,BG,BG,BG,BG,G,G,G,DG,_,_,_,_,_],
+READING[5] = [_,_,DG,G,LG,G,G,G,G,G,G,G,G,G,G,G,LG,G,DG,_,_,_,_,_],
 
 function drawSprite(canvas, grid) {
   const ctx = canvas.getContext('2d');
@@ -896,7 +905,7 @@ const SCENES = [
     sub: '~ an enchanted forest adventure ~',
     frogX: 38, // % from left
     frogFacing: 'right', // walk in from left so frog faces right initially
-    sprite: WAVE,
+    sprite: GLASSES,
     anim: 'frog-wave',
     name: '🐸 RIBBIT THE FROG',
     text: 'Greetings, traveller... *hops excitedly*\nI have journeyed far through this enchanted forest tonight... just to find YOU, Olivia.',
@@ -911,13 +920,13 @@ const SCENES = [
     sprite: B24,
     anim: 'frog-idle',
     name: '🐸 RIBBIT',
-    text: '*looks around nervously*\nThe mushrooms have gathered... the fireflies are glowing brighter than usual...\nEven the ancient oak trees are leaning in to listen.',
+    text: '*looks around nervously*\nThe mushrooms have gathered... the fireflies are glowing brighter than usual...\nWell I've been sent by a lil worm with a purpose',
     prompt: '▼ TAP / PRESS ANY KEY',
   },
   // SCENE 2: Sweet message
   {
     title: 'THE FROG\'S QUEST',
-    sub: '~ chapter 2: a confession ~',
+    sub: '~ chapter 1: the forest stirs ~',
     frogX: 50,
     frogFacing: 'right',
     sprite: B24,
@@ -929,13 +938,26 @@ const SCENES = [
   // SCENE 3: THE QUESTION
   {
     title: 'THE FROG\'S QUEST',
+    sub: '~ chapter 2: a confession ~',
+    frogX: 42,
+    frogFacing: 'right',
+    sprite: B24,
+    anim: 'frog-idle',
+    name: '🐸 RIBBIT',
+    text: 'Anyways....cough* cough*, now let me see what the womr has instructed me to deliver\n MY HONOURABLE DARLING WILL YOU BE MY GIRLFRIEND?\n\nThe whole forest awaits your answer... 🍄✨',
+    prompt: '▼ TAP / PRESS ANY KEY',
+  },
+
+    // SCENE 3: THE QUESTION
+  {
+    title: 'THE FROG\'S QUEST',
     sub: '~ FINAL QUEST ~',
     frogX: 42,
     frogFacing: 'right',
     sprite: B24,
     anim: 'frog-idle',
     name: '🐸 RIBBIT',
-    text: '[ ! IMPORTANT QUEST UNLOCKED ! ]\n\nWILL YOU BE MY GIRLFRIEND?\n\nThe whole forest awaits your answer... 🍄✨',
+    text: '[ IMPORTANT QUEST UNLOCKED\n\n Now that lil worm has told me to deliver this question',WILL YOU BE MY GIRLFRIEND?\n\nThe whole forest awaits your answer... 🍄✨',
     prompt: null, // no continue — show buttons instead
   },
 ];
