@@ -688,7 +688,7 @@ html,body{
 
 <!-- BACKGROUND MUSIC -->
 <audio id="bg-music" loop preload="auto">
-  <source src="geoffharvey-hiding-place-in-the-forest-111724.mp3" type="audio/mpeg">
+  <source src="https://cdn.pixabay.com/audio/2022/10/16/audio_a4e2b3e63b.mp3" type="audio/mpeg">
 </audio>
 
 <!-- MUTE TOGGLE -->
@@ -971,7 +971,7 @@ const SCENES = [
     text: '*places hand on heart*\nBut before I do… I must say.\nYou have a kind of magic, Olivia.\nThe gentle kind.\nThe kind that turns ordinary moments into something storybook and golden. ✨',
     prompt: '▼ TAP / PRESS ANY KEY',
   },
-   // SCENE 3a: Sacred Scroll — frog with glasses
+  // SCENE 3: Sacred Scroll — frog with glasses
   {
     title: 'THE FROG\'S QUEST',
     sub: '~ chapter 3: the sacred scroll ~',
@@ -983,10 +983,10 @@ const SCENES = [
     text: '*clears throat dramatically, adjusts enchanted spectacles*\nAhem… by decree of the Woodland Court… I must read the Sacred Scroll.',
     prompt: '▼ TAP / PRESS ANY KEY',
   },
-  // SCENE 3b: Sacred Scroll — frog with glasses
+  // SCENE 4: The question + yes/no buttons
   {
     title: 'THE FROG\'S QUEST',
-    sub: '~ chapter 3: the sacred scroll ~',
+    sub: '~ the moment of truth ~',
     frogX: 44,
     frogFacing: 'right',
     sprite: 'GLASSES',
@@ -1095,6 +1095,10 @@ function showScene(n){
   const sc = SCENES[n];
   sceneReady = false;
 
+  // Cancel any in-progress typewriter from previous scene
+  if(typeTimeout) { clearTimeout(typeTimeout); typeTimeout = null; }
+  typing = false;
+
   // Update title
   document.getElementById('main-title').textContent = sc.title;
   document.getElementById('main-sub').textContent   = sc.sub;
@@ -1138,7 +1142,7 @@ function showScene(n){
 
       typeText(sc.text, dlgText, ()=>{
         sceneReady = true;
-        if(n===5){
+        if(n===5 && currentScene===5){
           // Show buttons for the question scene
           actionBtns.classList.add('show');
           document.getElementById('btn-no').style.display = 'block';
