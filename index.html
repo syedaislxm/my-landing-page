@@ -1018,7 +1018,7 @@ function positionBubble(){
 
   // Vertically: sit bubble above frog with small gap for tail
   const titleH = document.getElementById('title-block').getBoundingClientRect().bottom;
-  let bTop = frogRect.top - bubbleH - 36; // 36px gap for tail
+  let bTop = frogRect.top - bubbleH - 60; // 36px gap for tail
   // Don't overlap title bar
   bTop = Math.max(titleH + 8, bTop);
 
