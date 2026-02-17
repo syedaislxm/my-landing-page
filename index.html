@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>For Olivia</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:       #0d1b0e;
+  --sky1:     #0a1f2e;
+  --sky2:     #0d2e1a;
+  --moon:     #e8d87a;
+  --tree1:    #0a2010;
+  --tree2:    #0d2e14;
+  --tree3:    #122e18;
+  --ground:   #1a3d1a;
+  --grass:    #2d5a2d;
+  --ff:       #c8ff50;
+  --cream:    #f5edd6;
+  --gold:     #f0a830;
+  --gold2:    #c87820;
+  --sage:     #7ab870;
+  --dark-txt: #1a0a00;
+  --pixel:    'Press Start 2P', monospace;
+}
+
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:var(--bg);
+  font-family:var(--pixel);
+  image-rendering:pixelated;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  cursor:default;
+}
+
+/* ═══════════════════════════════
+   PIXEL BACKGROUND — layered
+═══════════════════════════════ */
+#world{
+  position:fixed;inset:0;z-index:0;
+  overflow:hidden;
+}
+
+/* Sky gradient */
+#sky{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    #050f18 0%,
+    #0a1f2e 35%,
+    #0d2e1a 70%,
+    #0a1a0e 100%);
+}
+
+/* Moon */
+#moon-el{
+  position:absolute;
+  top:6%;left:50%;transform:translateX(-50%);
+  width:48px;height:48px;
+  background:var(--moon);
+  box-shadow:0 0 0 4px #f5e87a,0 0 20px 8px rgba(232,216,122,0.4);
+  /* pixelated circle using clip */
+  clip-path:polygon(
+    25% 0%,75% 0%,
+    100% 25%,100% 75%,
+    75% 100%,25% 100%,
+    0% 75%,0% 25%
+  );
+  animation:moonGlow 3s ease-in-out infinite alternate;
+}
+@keyframes moonGlow{
+  from{box-shadow:0 0 0 4px #f5e87a,0 0 20px 8px rgba(232,216,122,0.3);}
+  to  {box-shadow:0 0 0 4px #f5e87a,0 0 36px 14px rgba(232,216,122,0.55);}
+}
+
+/* Stars (pixel dots) */
+.px-star{
+  position:absolute;
+  background:#fff;
+  animation:starTwinkle var(--st) ease-in-out infinite alternate;
+  animation-delay:var(--sd);
+}
+@keyframes starTwinkle{from{opacity:0.15;}to{opacity:0.9;}}
+
+/* ── FAR MOUNTAINS / HILLS ── */
+#hills-far{
+  position:absolute;
+  bottom:38%;left:0;right:0;height:100px;
+  background:
+    /* pixel-style hills using repeating shapes */
+    radial-gradient(ellipse 180px 80px at 10% 100%, #0a2010 99%, transparent 100%),
+    radial-gradient(ellipse 220px 90px at 35% 100%, #0c2512 99%, transparent 100%),
+    radial-gradient(ellipse 200px 85px at 60% 100%, #0a2010 99%, transparent 100%),
+    radial-gradient(ellipse 240px 95px at 85% 100%, #0c2512 99%, transparent 100%);
+}
+
+/* ── TREE LAYERS (SVG pixel trees) ── */
+#trees-far,#trees-mid,#trees-near{
+  position:absolute;bottom:0;left:0;right:0;
+  pointer-events:none;
+}
+#trees-far  { height:42%; }
+#trees-mid  { height:36%; }
+#trees-near { height:28%; }
+
+/* ── GROUND STRIP ── */
+#ground{
+  position:absolute;
+  bottom:0;left:0;right:0;height:18%;
+  background:linear-gradient(180deg, var(--ground) 0%, #0f2010 100%);
+  border-top:4px solid var(--grass);
+}
+
+/* Grass tufts */
+.grass-tuft{
+  position:absolute;bottom:100%;
+  width:8px;height:8px;
+  background:var(--grass);
+  box-shadow:4px 0 0 var(--grass),-4px 0 0 var(--grass),
+             0 -4px 0 #3d7a3d, 4px -4px 0 #3d7a3d,-4px -4px 0 #3d7a3d;
+}
+
+/* Pixel mushrooms on ground */
+.px-shroom{
+  position:absolute;bottom:100%;
+  font-size:12px;
+  image-rendering:pixelated;
+}
+
+/* ── FIREFLIES ── */
+.firefly{
+  position:absolute;
+  width:4px;height:4px;
+  background:var(--ff);
+  box-shadow:0 0 4px 2px rgba(200,255,80,0.8),0 0 8px 4px rgba(200,255,80,0.3);
+  animation:ffFly var(--fd) ease-in-out infinite,
+            ffBlink var(--fb) ease-in-out infinite;
+  opacity:0;
+}
+@keyframes ffFly{
+  0%  {transform:translate(0,0);}
+  25% {transform:translate(var(--fx1),var(--fy1));}
+  50% {transform:translate(var(--fx2),var(--fy2));}
+  75% {transform:translate(var(--fx3),var(--fy3));}
+  100%{transform:translate(0,0);}
+}
+@keyframes ffBlink{0%,100%{opacity:0;}35%,65%{opacity:1;}50%{opacity:0.3;}}
+
+/* ═══════════════════════════════
+   PIXEL FROG CHARACTER
+═══════════════════════════════ */
+#frog-char{
+  position:fixed;
+  bottom:18%;   /* sits on ground */
+  left:-120px;  /* starts off screen */
+  z-index:20;
+  transition:left 0.8s cubic-bezier(0.25,0.1,0.25,1),
+             bottom 0.1s;
+  transform-origin:bottom center;
+}
+#frog-char canvas{
+  image-rendering:pixelated;
+  display:block;
+}
+/* Idle bob */
+.frog-idle{animation:frogIdle 0.9s ease-in-out infinite alternate;}
+@keyframes frogIdle{from{transform:translateY(0);}to{transform:translateY(-4px);}}
+/* Walk cycle — slight lean + step */
+.frog-walk{animation:frogWalk 0.35s steps(1) infinite;}
+@keyframes frogWalk{
+  0%  {transform:translateY(0)   scaleX(1);}
+  25% {transform:translateY(-5px) scaleX(0.96);}
+  50% {transform:translateY(0)   scaleX(1.04);}
+  75% {transform:translateY(-3px) scaleX(0.98);}
+}
+/* Wave */
+.frog-wave{animation:frogWave 0.6s ease-in-out 3;}
+@keyframes frogWave{
+  0%,100%{transform:translateY(0) rotate(0deg);}
+  25%    {transform:translateY(-6px) rotate(-5deg);}
+  75%    {transform:translateY(-2px) rotate(4deg);}
+}
+/* Shy */
+.frog-shy{animation:frogShy 0.5s ease-in-out 2;}
+@keyframes frogShy{
+  0%,100%{transform:rotate(0deg);}
+  30%    {transform:rotate(-8deg) translateY(-4px);}
+  70%    {transform:rotate(6deg);}
+}
+/* Happy hop */
+.frog-happy{animation:frogHappy 0.5s cubic-bezier(0.34,1.6,0.64,1) infinite alternate;}
+@keyframes frogHappy{
+  from{transform:translateY(0) rotate(-4deg) scale(1);}
+  to  {transform:translateY(-14px) rotate(4deg) scale(1.06);}
+}
+
+/* flip for right-facing */
+.flip{transform:scaleX(-1);}
+
+/* ═══════════════════════════════
+   GAME UI OVERLAY
+═══════════════════════════════ */
+#ui{
+  position:fixed;inset:0;z-index:30;
+  pointer-events:none;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:clamp(14px,5vw,28px) clamp(14px,5vw,28px) 0;
+}
+
+/* ── BIG PIXEL TITLE ── */
+#title-block{
+  text-align:center;
+  margin-bottom:clamp(8px,3vw,18px);
+  opacity:0;
+  animation:titleDrop 0.6s 0.3s cubic-bezier(0.34,1.3,0.64,1) forwards;
+}
+@keyframes titleDrop{
+  from{opacity:0;transform:translateY(-30px);}
+  to  {opacity:1;transform:translateY(0);}
+}
+
+.title-shadow{
+  /* pixel drop-shadow technique */
+  font-family:var(--pixel);
+  font-size:clamp(20px,6.5vw,42px);
+  color:var(--gold);
+  text-shadow:
+    3px 3px 0 var(--gold2),
+    6px 6px 0 #7a3a00,
+    -1px -1px 0 #f8c848;
+  letter-spacing:0.06em;
+  line-height:1.3;
+}
+
+.title-sub{
+  font-family:var(--pixel);
+  font-size:clamp(7px,2vw,11px);
+  color:var(--sage);
+  margin-top:8px;
+  letter-spacing:0.1em;
+}
+
+/* ── SPEECH BUBBLE (anchored above frog via JS) ── */
+#dialogue{
+  position:fixed;
+  z-index:31;
+  pointer-events:all;
+  opacity:0;
+  transition:opacity 0.35s;
+  width:min(72vw,320px);
+  /* positioned dynamically by JS relative to frog */
+}
+#dialogue.show{opacity:1;}
+
+.dialogue-box{
+  background:#0a1a0a;
+  border:4px solid var(--sage);
+  outline:4px solid #0a1a0a;
+  box-shadow:0 0 0 8px var(--sage), 4px 4px 0 0 #000;
+  padding:clamp(10px,3.5vw,16px) clamp(12px,4vw,18px);
+  position:relative;
+  border-radius:0px; /* keep pixel sharp */
+}
+/* pixel corner cutouts */
+.dialogue-box::before{
+  content:'';position:absolute;top:-8px;left:-8px;
+  width:8px;height:8px;background:#0a1a0a;
+}
+.dialogue-box::after{
+  content:'';position:absolute;bottom:-8px;right:-8px;
+  width:8px;height:8px;background:#0a1a0a;
+}
+
+/* speech bubble tail — pixel triangle pointing DOWN toward frog */
+.bubble-tail{
+  position:absolute;
+  bottom:-24px;
+  left:clamp(20px, 30%, 60px);
+  width:0;height:0;
+  /* stacked pixel blocks for a chunky retro tail */
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-top:8px solid var(--sage);
+  filter:drop-shadow(4px 4px 0 #000);
+}
+.bubble-tail::after{
+  content:'';
+  position:absolute;
+  top:-12px;left:-4px;
+  border-left:4px solid transparent;
+  border-right:4px solid transparent;
+  border-top:8px solid #0a1a0a;
+}
+
+.dialogue-name{
+  font-family:var(--pixel);
+  font-size:clamp(6px,1.8vw,8px);
+  color:var(--gold);
+  margin-bottom:8px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+
+.dialogue-text{
+  font-family:var(--pixel);
+  font-size:clamp(6px,2vw,9px);
+  color:var(--cream);
+  line-height:1.9;
+  letter-spacing:0.04em;
+  min-height:clamp(50px,12vw,80px);
+}
+
+.dialogue-text em{
+  color:var(--gold);
+  font-style:normal;
+}
+
+/* Blinking continue prompt */
+.continue-prompt{
+  display:block;
+  margin-top:8px;
+  font-size:clamp(5px,1.6vw,7px);
+  color:var(--sage);
+  text-align:right;
+  animation:blinker 0.8s steps(1) infinite;
+}
+@keyframes blinker{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* ── TEASE MESSAGE (scene 4) — sits in lower-mid screen, below title ── */
+#tease-line{
+  position:fixed;
+  bottom:clamp(120px,28vw,180px);
+  left:50%;transform:translateX(-50%);
+  font-family:var(--pixel);
+  font-size:clamp(6px,2vw,9px);
+  color:var(--gold);
+  text-align:center;
+  width:min(88vw,380px);
+  line-height:1.8;
+  opacity:0;
+  transition:opacity 0.3s;
+  z-index:31;
+  text-shadow:2px 2px 0 #000;
+  background:rgba(5,15,5,0.82);
+  border:2px solid var(--sage);
+  padding:8px 12px;
+  box-shadow:3px 3px 0 #000;
+}
+#tease-line.show{opacity:1;}
+
+/* ── PIXEL BUTTONS (scene 4) ── */
+#action-btns{
+  position:fixed;
+  bottom:clamp(18px,6vw,34px);
+  left:50%;transform:translateX(-50%);
+  display:flex;gap:clamp(12px,4vw,24px);
+  z-index:31;
+  opacity:0;
+  transition:opacity 0.4s;
+}
+#action-btns.show{opacity:1;pointer-events:all;}
+
+.px-btn{
+  font-family:var(--pixel);
+  font-size:clamp(8px,2.5vw,12px);
+  padding:clamp(10px,3vw,14px) clamp(18px,5vw,28px);
+  border:none;cursor:pointer;
+  outline:4px solid #000;
+  box-shadow:4px 4px 0 #000;
+  letter-spacing:0.06em;
+  transition:transform 0.1s,box-shadow 0.1s;
+  image-rendering:pixelated;
+}
+.px-btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #000;}
+
+#btn-yes{
+  background:var(--gold);
+  color:var(--dark-txt);
+  animation:yesFlash 1.8s ease-in-out infinite;
+}
+@keyframes yesFlash{
+  0%,100%{background:var(--gold);}
+  50%    {background:#f8d848;}
+}
+
+#btn-no{
+  background:#2a3a2a;
+  color:#7ab870;
+  position:fixed;
+  z-index:32;
+  outline:4px solid #000;
+  box-shadow:4px 4px 0 #000;
+  font-family:var(--pixel);
+  font-size:clamp(7px,2.2vw,10px);
+  padding:clamp(8px,2.5vw,12px) clamp(14px,4vw,22px);
+  border:none;cursor:pointer;
+  letter-spacing:0.05em;
+}
+
+/* ── YES SCREEN ── */
+#yes-screen{
+  position:fixed;inset:0;z-index:50;
+  background:#050f07;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:24px;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.8s;
+}
+#yes-screen.show{opacity:1;pointer-events:all;}
+
+.yes-title{
+  font-family:var(--pixel);
+  font-size:clamp(18px,5.5vw,34px);
+  color:var(--gold);
+  text-shadow:3px 3px 0 var(--gold2),6px 6px 0 #5a2800;
+  margin-bottom:16px;
+  animation:popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.yes-sub{
+  font-family:var(--pixel);
+  font-size:clamp(6px,2vw,9px);
+  color:var(--sage);
+  line-height:2.2;
+  animation:popIn 0.6s 0.2s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+#yes-frog{
+  margin-bottom:18px;
+  image-rendering:pixelated;
+  animation:popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both,
+            frogHappy 0.5s 0.7s cubic-bezier(0.34,1.6,0.64,1) infinite alternate;
+  filter:drop-shadow(0 0 14px rgba(200,255,80,0.7));
+}
+@keyframes popIn{from{opacity:0;transform:scale(0.4);}to{opacity:1;transform:scale(1);}}
+
+/* ── CONFETTI ── */
+.confetti-piece{
+  position:fixed;top:-40px;
+  font-family:var(--pixel);
+  font-size:clamp(12px,4vw,20px);
+  z-index:100;pointer-events:none;
+  animation:cFall var(--cf) linear forwards;
+}
+@keyframes cFall{
+  0%  {transform:translateY(0) rotate(0);opacity:1;}
+  85% {opacity:1;}
+  100%{transform:translateY(110vh) rotate(var(--cs));opacity:0;}
+}
+
+/* typewriter cursor */
+.cursor{
+  display:inline-block;
+  width:8px;height:clamp(9px,2.5vw,12px);
+  background:var(--cream);
+  animation:blinker 0.6s steps(1) infinite;
+  vertical-align:middle;
+  margin-left:2px;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ WORLD ═══════════ -->
+<div id="world">
+  <div id="sky"></div>
+  <div id="moon-el"></div>
+
+  <!-- Far trees -->
+  <div id="trees-far">
+    <svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="400" height="160" fill="none"/>
+      <!-- pixel-style trees: fat blocky triangles -->
+      <rect x="18"  y="60" width="8"  height="100" fill="#061008"/>
+      <rect x="10"  y="90" width="24" height="8"   fill="#061008"/>
+      <rect x="6"   y="70" width="32" height="8"   fill="#061008"/>
+      <rect x="2"   y="50" width="40" height="8"   fill="#061008"/>
+
+      <rect x="90"  y="40" width="8"  height="120" fill="#061008"/>
+      <rect x="82"  y="70" width="24" height="8"   fill="#061008"/>
+      <rect x="78"  y="52" width="32" height="8"   fill="#061008"/>
+      <rect x="74"  y="34" width="40" height="8"   fill="#061008"/>
+
+      <rect x="170" y="50" width="8"  height="110" fill="#071209"/>
+      <rect x="162" y="78" width="24" height="8"   fill="#071209"/>
+      <rect x="158" y="60" width="32" height="8"   fill="#071209"/>
+      <rect x="154" y="42" width="40" height="8"   fill="#071209"/>
+
+      <rect x="250" y="45" width="8"  height="115" fill="#061008"/>
+      <rect x="242" y="74" width="24" height="8"   fill="#061008"/>
+      <rect x="238" y="56" width="32" height="8"   fill="#061008"/>
+      <rect x="234" y="38" width="40" height="8"   fill="#061008"/>
+
+      <rect x="330" y="55" width="8"  height="105" fill="#071209"/>
+      <rect x="322" y="82" width="24" height="8"   fill="#071209"/>
+      <rect x="318" y="64" width="32" height="8"   fill="#071209"/>
+      <rect x="314" y="46" width="40" height="8"   fill="#071209"/>
+    </svg>
+  </div>
+
+  <!-- Mid trees -->
+  <div id="trees-mid">
+    <svg viewBox="0 0 400 140" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0"   y="30" width="10" height="110" fill="#091a0b"/>
+      <rect x="0"   y="58" width="30" height="10"  fill="#091a0b"/>
+      <rect x="0"   y="42" width="38" height="10"  fill="#091a0b"/>
+      <rect x="5"   y="26" width="30" height="10"  fill="#091a0b"/>
+
+      <rect x="55"  y="20" width="10" height="120" fill="#0a1e0c"/>
+      <rect x="46"  y="50" width="28" height="10"  fill="#0a1e0c"/>
+      <rect x="43"  y="34" width="34" height="10"  fill="#0a1e0c"/>
+      <rect x="48"  y="18" width="24" height="10"  fill="#0a1e0c"/>
+
+      <rect x="130" y="25" width="10" height="115" fill="#091a0b"/>
+      <rect x="121" y="54" width="28" height="10"  fill="#091a0b"/>
+      <rect x="118" y="38" width="34" height="10"  fill="#091a0b"/>
+      <rect x="123" y="22" width="24" height="10"  fill="#091a0b"/>
+
+      <rect x="210" y="18" width="10" height="122" fill="#0a1e0c"/>
+      <rect x="201" y="48" width="28" height="10"  fill="#0a1e0c"/>
+      <rect x="198" y="32" width="34" height="10"  fill="#0a1e0c"/>
+      <rect x="203" y="16" width="24" height="10"  fill="#0a1e0c"/>
+
+      <rect x="288" y="22" width="10" height="118" fill="#091a0b"/>
+      <rect x="279" y="52" width="28" height="10"  fill="#091a0b"/>
+      <rect x="276" y="36" width="34" height="10"  fill="#091a0b"/>
+      <rect x="281" y="20" width="24" height="10"  fill="#091a0b"/>
+
+      <rect x="358" y="28" width="10" height="112" fill="#0a1e0c"/>
+      <rect x="349" y="56" width="28" height="10"  fill="#0a1e0c"/>
+      <rect x="346" y="40" width="34" height="10"  fill="#0a1e0c"/>
+      <rect x="351" y="24" width="24" height="10"  fill="#0a1e0c"/>
+    </svg>
+  </div>
+
+  <!-- Near trees -->
+  <div id="trees-near">
+    <svg viewBox="0 0 400 112" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0"   y="10" width="14" height="102" fill="#0c2410"/>
+      <rect x="0"   y="34" width="38" height="12"  fill="#0c2410"/>
+      <rect x="0"   y="20" width="46" height="12"  fill="#0c2410"/>
+      <rect x="7"   y="6"  width="30" height="12"  fill="#0c2410"/>
+
+      <rect x="78"  y="4"  width="14" height="108" fill="#0e2a12"/>
+      <rect x="68"  y="30" width="34" height="12"  fill="#0e2a12"/>
+      <rect x="65"  y="16" width="40" height="12"  fill="#0e2a12"/>
+      <rect x="70"  y="2"  width="28" height="12"  fill="#0e2a12"/>
+
+      <rect x="178" y="8"  width="14" height="104" fill="#0c2410"/>
+      <rect x="168" y="34" width="34" height="12"  fill="#0c2410"/>
+      <rect x="165" y="20" width="40" height="12"  fill="#0c2410"/>
+      <rect x="170" y="6"  width="28" height="12"  fill="#0c2410"/>
+
+      <rect x="268" y="5"  width="14" height="107" fill="#0e2a12"/>
+      <rect x="258" y="32" width="34" height="12"  fill="#0e2a12"/>
+      <rect x="255" y="18" width="40" height="12"  fill="#0e2a12"/>
+      <rect x="260" y="3"  width="28" height="12"  fill="#0e2a12"/>
+
+      <rect x="358" y="10" width="14" height="102" fill="#0c2410"/>
+      <rect x="348" y="36" width="34" height="12"  fill="#0c2410"/>
+      <rect x="345" y="22" width="40" height="12"  fill="#0c2410"/>
+      <rect x="350" y="8"  width="28" height="12"  fill="#0c2410"/>
+
+      <!-- no mushrooms here anymore — moved to dedicated SVG overlay -->
+    </svg>
+  </div>
+
+  <div id="ground"></div>
+
+  <!-- ── PIXEL MUSHROOMS — dedicated layer on ground ── -->
+  <div id="mushroom-layer" style="position:absolute;bottom:18%;left:0;right:0;height:52px;z-index:3;pointer-events:none;">
+    <svg viewBox="0 0 400 52" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- Each mushroom is built BOTTOM-UP so stem top = cap bottom, no gaps -->
+      <!-- Stem occupies rows 52→(52-stemH). Cap sits immediately above. -->
+
+      <!-- ══ A: big red, x=22 ══ -->
+      <!-- stem: y=34 to y=52, h=18 -->
+      <rect x="25" y="34" width="8"  height="18" fill="#a0784a"/>
+      <rect x="24" y="36" width="10" height="14" fill="#c89860"/>
+      <!-- cap base (widest, sits y=28 to y=34) -->
+      <rect x="14" y="28" width="30" height="6"  fill="#8b1a1a"/>
+      <!-- cap mid y=22 to y=28 -->
+      <rect x="17" y="22" width="24" height="6"  fill="#c0392b"/>
+      <!-- cap top y=16 to y=22 -->
+      <rect x="20" y="16" width="18" height="6"  fill="#c0392b"/>
+      <!-- cap tip y=12 to y=16 -->
+      <rect x="22" y="12" width="14" height="4"  fill="#d44030"/>
+      <!-- spots -->
+      <rect x="18" y="24" width="4" height="3" fill="#f5f0dc"/>
+      <rect x="28" y="23" width="4" height="3" fill="#f5f0dc"/>
+      <rect x="22" y="30" width="3" height="2" fill="#f5f0dc"/>
+
+      <!-- ══ B: small red, x=56 ══ -->
+      <rect x="58" y="40" width="6"  height="12" fill="#a0784a"/>
+      <rect x="57" y="42" width="8"  height="9"  fill="#c89860"/>
+      <rect x="50" y="34" width="22" height="6"  fill="#8b1a1a"/>
+      <rect x="52" y="28" width="18" height="6"  fill="#c0392b"/>
+      <rect x="54" y="23" width="14" height="5"  fill="#c0392b"/>
+      <rect x="56" y="19" width="10" height="4"  fill="#d44030"/>
+      <rect x="52" y="30" width="3" height="2" fill="#f5f0dc"/>
+      <rect x="60" y="29" width="3" height="2" fill="#f5f0dc"/>
+
+      <!-- ══ C: tan medium, x=110 ══ -->
+      <rect x="113" y="36" width="8"  height="16" fill="#7a5030"/>
+      <rect x="112" y="38" width="10" height="12" fill="#a07040"/>
+      <rect x="103" y="30" width="28" height="6"  fill="#7a4820"/>
+      <rect x="105" y="24" width="24" height="6"  fill="#b8762a"/>
+      <rect x="108" y="18" width="18" height="6"  fill="#c8882a"/>
+      <rect x="110" y="14" width="14" height="4"  fill="#d89830"/>
+      <rect x="105" y="26" width="4" height="3" fill="#e8c870"/>
+      <rect x="116" y="25" width="3" height="3" fill="#e8c870"/>
+      <rect x="109" y="32" width="3" height="2" fill="#e8c870"/>
+
+      <!-- ══ D: tiny tan, x=142 ══ -->
+      <rect x="144" y="42" width="5"  height="10" fill="#7a5030"/>
+      <rect x="143" y="44" width="7"  height="7"  fill="#a07040"/>
+      <rect x="137" y="37" width="17" height="5"  fill="#7a4820"/>
+      <rect x="139" y="32" width="13" height="5"  fill="#b8762a"/>
+      <rect x="141" y="28" width="9"  height="4"  fill="#c8882a"/>
+      <rect x="139" y="33" width="3" height="2" fill="#e8c870"/>
+      <rect x="147" y="32" width="2" height="2" fill="#e8c870"/>
+
+      <!-- ══ E: BIG red centre, x=208 ══ -->
+      <rect x="212" y="30" width="10" height="22" fill="#a0784a"/>
+      <rect x="210" y="32" width="14" height="18" fill="#c89860"/>
+      <rect x="198" y="23" width="38" height="7"  fill="#8b1a1a"/>
+      <rect x="201" y="16" width="32" height="7"  fill="#c0392b"/>
+      <rect x="204" y="10" width="26" height="6"  fill="#c0392b"/>
+      <rect x="207" y="5"  width="20" height="5"  fill="#c0392b"/>
+      <rect x="210" y="2"  width="14" height="3"  fill="#d44030"/>
+      <!-- spots -->
+      <rect x="202" y="18" width="5" height="4" fill="#f5f0dc"/>
+      <rect x="215" y="17" width="5" height="4" fill="#f5f0dc"/>
+      <rect x="226" y="20" width="4" height="3" fill="#f5f0dc"/>
+      <rect x="206" y="25" width="4" height="3" fill="#f5f0dc"/>
+      <rect x="220" y="24" width="4" height="3" fill="#f5f0dc"/>
+
+      <!-- ══ F: medium red, x=256 ══ -->
+      <rect x="259" y="38" width="7"  height="14" fill="#a0784a"/>
+      <rect x="258" y="40" width="9"  height="11" fill="#c89860"/>
+      <rect x="250" y="32" width="23" height="6"  fill="#8b1a1a"/>
+      <rect x="252" y="26" width="19" height="6"  fill="#c0392b"/>
+      <rect x="255" y="21" width="13" height="5"  fill="#c0392b"/>
+      <rect x="257" y="17" width="9"  height="4"  fill="#d44030"/>
+      <rect x="252" y="28" width="4" height="3" fill="#f5f0dc"/>
+      <rect x="262" y="27" width="3" height="3" fill="#f5f0dc"/>
+
+      <!-- ══ G: tan right, x=318 ══ -->
+      <rect x="321" y="36" width="8"  height="16" fill="#7a5030"/>
+      <rect x="320" y="38" width="10" height="12" fill="#a07040"/>
+      <rect x="311" y="30" width="26" height="6"  fill="#7a4820"/>
+      <rect x="313" y="24" width="22" height="6"  fill="#b8762a"/>
+      <rect x="316" y="18" width="16" height="6"  fill="#c8882a"/>
+      <rect x="318" y="14" width="12" height="4"  fill="#d89830"/>
+      <rect x="313" y="26" width="4" height="3" fill="#e8c870"/>
+      <rect x="323" y="25" width="3" height="3" fill="#e8c870"/>
+      <rect x="317" y="32" width="3" height="2" fill="#e8c870"/>
+
+      <!-- ══ H: tiny red far right, x=354 ══ -->
+      <rect x="356" y="42" width="5"  height="10" fill="#a0784a"/>
+      <rect x="355" y="44" width="7"  height="7"  fill="#c89860"/>
+      <rect x="349" y="37" width="17" height="5"  fill="#8b1a1a"/>
+      <rect x="351" y="32" width="13" height="5"  fill="#c0392b"/>
+      <rect x="353" y="28" width="9"  height="4"  fill="#d44030"/>
+      <rect x="351" y="33" width="3" height="2" fill="#f5f0dc"/>
+      <rect x="359" y="32" width="2" height="2" fill="#f5f0dc"/>
+
+    </svg>
+  </div>
+</div>
+
+<!-- ═══════════ FROG CHARACTER ═══════════ -->
+<div id="frog-char">
+  <canvas id="frog-canvas" width="24" height="24" style="width:72px;height:72px;"></canvas>
+</div>
+
+<!-- ═══════════ UI ═══════════ -->
+<div id="ui">
+  <div id="title-block">
+    <div class="title-shadow" id="main-title">THE FROG'S QUEST</div>
+    <div class="title-sub" id="main-sub">~ an enchanted forest adventure ~</div>
+  </div>
+</div>
+
+<!-- DIALOGUE BOX -->
+<div id="dialogue">
+  <div class="dialogue-box">
+    <div class="dialogue-name" id="dlg-name">🐸 RIBBIT</div>
+    <div class="dialogue-text" id="dlg-text"></div>
+    <span class="continue-prompt" id="dlg-prompt">▼ TAP TO CONTINUE</span>
+    <div class="bubble-tail" id="bubble-tail"></div>
+  </div>
+</div>
+
+<!-- TEASE LINE (scene 4) -->
+<div id="tease-line"></div>
+
+<!-- ACTION BUTTONS (scene 4) -->
+<div id="action-btns">
+  <button class="px-btn" id="btn-yes" onclick="sayYes()">[ YES!! 🌻 ]</button>
+</div>
+
+<!-- NO BUTTON (fixed, dodges) -->
+<button id="btn-no">[ NO 🐸 ]</button>
+
+<!-- YES SCREEN -->
+<div id="yes-screen">
+  <canvas id="yes-frog" width="24" height="24" style="width:96px;height:96px;"></canvas>
+  <div class="yes-title">QUEST COMPLETE!!</div>
+  <div class="yes-sub">
+    ★ OLIVIA SAID YES ★<br><br>
+    THE FOREST REJOICES...<br>
+    THE FROGS ARE DANCING...<br>
+    THE MUSHROOMS CHEER...<br><br>
+    <span style="color:var(--gold)">+ 9999 HAPPINESS POINTS</span>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  PIXEL FROG — 24×24 sprite
+// ════════════════════════════════════════════
+const _ = null;
+// colours
+const G  = '#3a7a30';  // body
+const DG = '#1e4a18';  // dark outline
+const BG = '#5aaa40';  // bright green
+const LG = '#7acc55';  // highlight
+const W  = '#b8e890';  // eye white
+const EP = '#111';     // pupil
+const RD = '#b84040';  // mouth/blush
+const TN = '#c8a060';  // tongue/belly tan
+
+// 24×24 BASE sitting frog
+const B24 = [
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,DG,DG,DG,_,_,_,_,_,_,_,DG,DG,DG,_,_,_,_,_,_,_],
+  [_,_,_,DG,G,G,G,DG,_,_,_,_,_,DG,G,G,G,DG,_,_,_,_,_,_],
+  [_,_,_,DG,W,EP,G,DG,_,_,_,_,_,DG,G,EP,W,DG,_,_,_,_,_,_],
+  [_,_,DG,G,G,G,G,G,DG,DG,DG,DG,DG,G,G,G,G,G,DG,_,_,_,_,_],
+  [_,_,DG,G,LG,G,G,G,G,G,G,G,G,G,G,G,LG,G,DG,_,_,_,_,_],
+  [_,_,DG,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,DG,_,_,_,_,_],
+  [_,_,DG,G,G,G,RD,G,G,G,G,G,G,G,RD,G,G,G,DG,_,_,_,_,_],
+  [_,_,_,DG,G,G,G,G,G,G,G,G,G,G,G,G,G,DG,_,_,_,_,_,_],
+  [_,_,_,DG,G,TN,TN,TN,TN,TN,TN,TN,TN,TN,TN,TN,G,DG,_,_,_,_,_,_],
+  [_,_,_,DG,G,TN,TN,TN,TN,TN,TN,TN,TN,TN,TN,TN,G,DG,_,_,_,_,_,_],
+  [_,DG,G,DG,G,TN,TN,TN,TN,TN,TN,TN,TN,TN,TN,G,DG,G,G,DG,_,_,_,_],
+  [_,DG,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,DG,_,_,_,_],
+  [_,_,DG,G,DG,_,_,DG,G,G,G,G,G,G,DG,_,_,DG,G,DG,_,_,_,_],
+  [_,_,DG,G,DG,_,_,DG,G,G,G,G,G,G,DG,_,_,DG,G,DG,_,_,_,_],
+  [DG,G,G,G,G,DG,DG,G,G,G,G,G,G,G,G,DG,DG,G,G,G,G,DG,_,_],
+  [DG,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,DG,_,_],
+  [_,DG,DG,G,G,DG,DG,G,G,G,DG,DG,G,G,G,DG,DG,G,G,DG,DG,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+];
+
+// WAVE: right arm up
+const WAVE = B24.map(r=>[...r]);
+WAVE[4]  = [_,_,DG,G,G,G,G,G,DG,DG,DG,DG,DG,G,G,G,G,DG,G,DG,_,_,_,_];
+WAVE[5]  = [_,_,DG,G,LG,G,G,G,G,G,G,G,G,G,G,G,LG,DG,G,DG,_,_,_,_];
+WAVE[3]  = [_,_,_,DG,W,EP,G,DG,_,_,_,_,_,DG,G,EP,W,DG,G,DG,_,_,_,_];
+WAVE[2]  = [_,_,_,DG,G,G,G,DG,_,_,_,_,_,DG,G,G,G,DG,G,_,_,_,_,_];
+WAVE[1]  = [_,_,_,_,DG,DG,DG,_,_,_,_,_,_,_,DG,DG,G,DG,_,_,_,_,_,_];
+
+// WALK A: left foot forward
+const WALK_A = B24.map(r=>[...r]);
+WALK_A[15]= [DG,G,G,G,G,DG,DG,G,G,G,G,G,G,G,G,DG,DG,G,G,G,G,DG,_,_];
+WALK_A[16]= [DG,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,DG,_,_,_];
+WALK_A[17]= [_,DG,DG,G,G,DG,DG,G,G,G,DG,DG,G,G,G,DG,G,G,DG,DG,_,_,_,_];
+
+// WALK B: right foot forward
+const WALK_B = B24.map(r=>[...r]);
+WALK_B[15]= [DG,G,G,G,G,DG,G,G,G,G,G,G,G,G,G,G,DG,G,G,G,G,DG,_,_];
+WALK_B[16]= [_,DG,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,DG,_,_];
+WALK_B[17]= [_,_,DG,DG,G,DG,DG,G,G,G,DG,DG,G,G,G,DG,DG,G,DG,DG,_,_,_,_];
+
+// SHY: arms cover face
+const SHY = B24.map(r=>[...r]);
+SHY[2]   = [_,_,_,DG,G,G,G,DG,_,_,_,_,_,DG,G,G,G,DG,_,_,_,_,_,_];
+SHY[3]   = [_,_,_,DG,G,G,G,DG,_,_,_,_,_,DG,G,G,G,DG,_,_,_,_,_,_];
+SHY[4]   = [DG,G,G,G,G,G,G,G,DG,DG,DG,DG,DG,G,G,G,G,G,G,G,DG,_,_,_];
+SHY[11]  = [_,DG,G,DG,G,TN,TN,TN,TN,TN,TN,TN,TN,TN,TN,G,DG,G,G,DG,_,_,_,_];
+
+// HAPPY: big grin, eyes closed squint
+const HAPPY = B24.map(r=>[...r]);
+HAPPY[2]  = [_,_,_,DG,LG,LG,LG,DG,_,_,_,_,_,DG,LG,LG,LG,DG,_,_,_,_,_,_];
+HAPPY[3]  = [_,_,_,DG,DG,DG,DG,DG,_,_,_,_,_,DG,DG,DG,DG,DG,_,_,_,_,_,_];
+HAPPY[7]  = [_,_,DG,G,RD,RD,RD,RD,G,G,G,G,G,RD,RD,RD,RD,G,DG,_,_,_,_,_];
+HAPPY[11] = [_,DG,G,DG,G,TN,TN,G,TN,G,G,G,TN,G,TN,TN,G,DG,G,G,DG,_,_,_];
+
+function drawSprite(canvas, grid) {
+  const ctx = canvas.getContext('2d');
+  const size = canvas.width;
+  ctx.clearRect(0,0,size,size);
+  for(let y=0;y<size;y++){
+    for(let x=0;x<size;x++){
+      if(grid[y] && grid[y][x]){
+        ctx.fillStyle = grid[y][x];
+        ctx.fillRect(x,y,1,1);
+      }
+    }
+  }
+}
+
+const frogCanvas  = document.getElementById('frog-canvas');
+const yesFrog     = document.getElementById('yes-frog');
+drawSprite(frogCanvas, B24);
+drawSprite(yesFrog, HAPPY);
+
+// ── WALK ANIMATION ──
+let walkFrame = 0;
+let walkInterval = null;
+function startWalk(){
+  walkInterval = setInterval(()=>{
+    drawSprite(frogCanvas, walkFrame%2===0 ? WALK_A : WALK_B);
+    walkFrame++;
+  },180);
+}
+function stopWalk(){
+  clearInterval(walkInterval);
+  walkInterval = null;
+}
+
+// ── BLINK ──
+setInterval(()=>{
+  if(currentScene<=3){
+    const blink = B24.map(r=>[...r]);
+    blink[2] = [_,_,_,DG,G,G,G,DG,_,_,_,_,_,DG,G,G,G,DG,_,_,_,_,_,_];
+    blink[3] = [_,_,_,DG,G,G,G,DG,_,_,_,_,_,DG,G,G,G,DG,_,_,_,_,_,_];
+    drawSprite(frogCanvas, blink);
+    setTimeout(()=>drawSprite(frogCanvas, currentSprite), 100);
+  }
+}, 3500);
+
+// ── STARS ──
+for(let i=0;i<90;i++){
+  const s=document.createElement('div');
+  s.className='px-star';
+  const sz=Math.random()<0.3?2:1; // some 2px "big" stars
+  s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*55}%;--st:${1.5+Math.random()*4}s;--sd:${Math.random()*-5}s;`;
+  document.getElementById('sky').appendChild(s);
+}
+
+// ── FIREFLIES ──
+for(let i=0;i<25;i++){
+  const f=document.createElement('div');
+  f.className='firefly';
+  const dur=7+Math.random()*8, blink=1.8+Math.random()*2.5;
+  const rng=()=>(Math.random()>.5?1:-1)*(20+Math.random()*55)+'px';
+  f.style.cssText=`left:${Math.random()*100}%;top:${10+Math.random()*65}%;
+    --fd:${dur}s;--fb:${blink}s;
+    --fx1:${rng()};--fy1:${rng()};--fx2:${rng()};--fy2:${rng()};--fx3:${rng()};--fy3:${rng()};
+    animation-delay:${Math.random()*-dur}s,${Math.random()*-blink}s;`;
+  document.getElementById('world').appendChild(f);
+}
+
+// ── GRASS TUFTS ──
+const groundEl=document.getElementById('ground');
+for(let i=0;i<30;i++){
+  const g=document.createElement('div');
+  g.className='grass-tuft';
+  g.style.left=(2+Math.random()*96)+'%';
+  groundEl.appendChild(g);
+}
+
+// ════════════════════════════════════════════
+//  SCENE SYSTEM
+// ════════════════════════════════════════════
+let currentScene  = 0;
+let currentSprite = B24;
+let typing        = false;
+let typeTimeout   = null;
+let sceneReady    = false;
+
+const frogChar = document.getElementById('frog-char');
+const dialogue = document.getElementById('dialogue');
+const dlgText  = document.getElementById('dlg-text');
+const dlgName  = document.getElementById('dlg-name');
+const dlgPrompt= document.getElementById('dlg-prompt');
+const teaseLine= document.getElementById('tease-line');
+const actionBtns=document.getElementById('action-btns');
+
+const SCENES = [
+  // SCENE 0: Title screen — frog walks in, waves
+  {
+    title: 'THE FROG\'S QUEST',
+    sub: '~ an enchanted forest adventure ~',
+    frogX: 38, // % from left
+    frogFacing: 'right', // walk in from left so frog faces right initially
+    sprite: WAVE,
+    anim: 'frog-wave',
+    name: '🐸 RIBBIT THE FROG',
+    text: 'Greetings, traveller... *hops excitedly*\nI have journeyed far through this enchanted forest tonight... just to find YOU, Olivia.',
+    prompt: '▼ TAP / PRESS ANY KEY',
+  },
+  // SCENE 1: Forest stirs
+  {
+    title: 'THE FROG\'S QUEST',
+    sub: '~ chapter 1: the forest stirs ~',
+    frogX: 30,
+    frogFacing: 'left',
+    sprite: B24,
+    anim: 'frog-idle',
+    name: '🐸 RIBBIT',
+    text: '*looks around nervously*\nThe mushrooms have gathered... the fireflies are glowing brighter than usual...\nEven the ancient oak trees are leaning in to listen.',
+    prompt: '▼ TAP / PRESS ANY KEY',
+  },
+  // SCENE 2: Sweet message
+  {
+    title: 'THE FROG\'S QUEST',
+    sub: '~ chapter 2: a confession ~',
+    frogX: 50,
+    frogFacing: 'right',
+    sprite: B24,
+    anim: 'frog-idle',
+    name: '🐸 RIBBIT',
+    text: '*holds out a tiny sunflower* 🌻\nI hope tonight has felt as warm as a sunlit meadow...\nYou carry a kind of magic, Olivia. The sort that makes ordinary evenings feel like fairytales.',
+    prompt: '▼ TAP / PRESS ANY KEY',
+  },
+  // SCENE 3: THE QUESTION
+  {
+    title: 'THE FROG\'S QUEST',
+    sub: '~ FINAL QUEST ~',
+    frogX: 42,
+    frogFacing: 'right',
+    sprite: B24,
+    anim: 'frog-idle',
+    name: '🐸 RIBBIT',
+    text: '[ ! IMPORTANT QUEST UNLOCKED ! ]\n\nWILL YOU BE MY GIRLFRIEND?\n\nThe whole forest awaits your answer... 🍄✨',
+    prompt: null, // no continue — show buttons instead
+  },
+];
+
+function setFrogAnim(anim){
+  frogChar.querySelector('canvas').className = 'frog-canvas-el';
+  frogChar.classList.remove('frog-idle','frog-wave','frog-shy','frog-happy','frog-walk');
+  frogChar.classList.add(anim);
+}
+
+function moveFrogTo(targetPct, onDone){
+  const currentLeft = parseFloat(frogChar.style.left) || -10;
+  const targetLeft  = targetPct; // in vw units relative
+  const targetPx    = window.innerWidth * targetPct / 100;
+
+  // Flip canvas based on direction
+  const isFlipped   = targetPx < parseFloat(frogChar.style.left || '0');
+
+  frogChar.querySelector('canvas').style.transform = isFlipped ? 'scaleX(-1)':'scaleX(1)';
+  drawSprite(frogCanvas, walkFrame%2===0?WALK_A:WALK_B);
+  frogChar.classList.add('frog-walk');
+  startWalk();
+  frogChar.style.left = targetLeft + 'vw';
+
+  const dist = Math.abs(targetLeft - (parseFloat(frogChar.style.left)||0));
+  const walkTime = 700 + Math.abs(targetPct - (parseFloat(frogChar.style.left)||0)) * 12;
+
+  setTimeout(()=>{
+    stopWalk();
+    frogChar.classList.remove('frog-walk');
+    drawSprite(frogCanvas, currentSprite);
+    if(onDone) onDone();
+  }, 820);
+}
+
+// typewriter
+function typeText(txt, el, cb){
+  typing = true;
+  el.innerHTML = '';
+  const lines = txt.split('\n');
+  let full = '';
+  lines.forEach((l,i)=>{ full += l + (i<lines.length-1?'<br>':''); });
+
+  // parse to array of chars / tags
+  const chars = [];
+  let inTag=false, tag='';
+  for(let i=0;i<full.length;i++){
+    if(full[i]==='<'){inTag=true;tag='<';}
+    else if(inTag){tag+=full[i];if(full[i]==='>'){chars.push({t:'tag',v:tag});inTag=false;tag='';}}
+    else chars.push({t:'char',v:full[i]});
+  }
+
+  let idx=0;
+  let rendered='';
+  function next(){
+    if(idx>=chars.length){
+      typing=false;
+      el.innerHTML=rendered+'<span class="cursor"></span>';
+      if(cb) cb();
+      return;
+    }
+    const c=chars[idx++];
+    if(c.t==='tag'){rendered+=c.v;el.innerHTML=rendered+'▌';}
+    else{rendered+=c.v;el.innerHTML=rendered+'▌';}
+    typeTimeout=setTimeout(next, c.t==='tag'?0:38);
+  }
+  next();
+}
+
+// Position speech bubble above the frog
+function positionBubble(){
+  const frogRect = frogChar.getBoundingClientRect();
+  const bubbleW  = dialogue.offsetWidth  || 280;
+  const bubbleH  = dialogue.offsetHeight || 140;
+
+  // Horizontally: try to align bubble left edge with frog center
+  let bLeft = frogRect.left + frogRect.width/2 - bubbleW * 0.3;
+  // Clamp so it doesn't overflow screen edges
+  bLeft = Math.max(8, Math.min(bLeft, window.innerWidth - bubbleW - 8));
+
+  // Vertically: sit bubble above frog with small gap for tail
+  const titleH = document.getElementById('title-block').getBoundingClientRect().bottom;
+  let bTop = frogRect.top - bubbleH - 36; // 36px gap for tail
+  // Don't overlap title bar
+  bTop = Math.max(titleH + 8, bTop);
+
+  dialogue.style.left = bLeft + 'px';
+  dialogue.style.top  = bTop  + 'px';
+  dialogue.style.bottom = 'auto';
+  dialogue.style.transform = 'none';
+
+  // Move tail to point toward frog center
+  const tail = document.getElementById('bubble-tail');
+  const tailX = (frogRect.left + frogRect.width/2) - bLeft - 8;
+  tail.style.left = Math.max(16, Math.min(tailX, bubbleW - 32)) + 'px';
+}
+
+function showScene(n){
+  currentScene = n;
+  const sc = SCENES[n];
+  sceneReady = false;
+
+  // Update title
+  document.getElementById('main-title').textContent = sc.title;
+  document.getElementById('main-sub').textContent   = sc.sub;
+
+  // Hide dialogue temporarily
+  dialogue.classList.remove('show');
+  actionBtns.classList.remove('show');
+  teaseLine.classList.remove('show');
+  document.getElementById('btn-no').style.display = 'none';
+
+  currentSprite = sc.sprite;
+  drawSprite(frogCanvas, sc.sprite);
+
+  // Frog walks in from off-screen
+  const startLeft = sc.frogFacing==='right' ? -12 : 112;
+  frogChar.style.transition = 'none';
+  frogChar.style.left = startLeft + 'vw';
+  frogChar.querySelector('canvas').style.transform = sc.frogFacing==='right'?'scaleX(1)':'scaleX(-1)';
+
+  setTimeout(()=>{
+    frogChar.style.transition = 'left 0.85s cubic-bezier(0.25,0.1,0.25,1)';
+    drawSprite(frogCanvas, walkFrame%2===0?WALK_A:WALK_B);
+    setFrogAnim('frog-walk');
+    startWalk();
+    frogChar.style.left = sc.frogX + 'vw';
+
+    setTimeout(()=>{
+      stopWalk();
+      setFrogAnim(sc.anim);
+      drawSprite(frogCanvas, sc.sprite);
+
+      // Show dialogue as speech bubble above frog
+      dlgName.textContent = sc.name;
+
+      // Position bubble above frog
+      positionBubble();
+
+      dialogue.classList.add('show');
+      dlgPrompt.style.display = sc.prompt ? 'block':'none';
+      if(sc.prompt) dlgPrompt.textContent = sc.prompt;
+
+      typeText(sc.text, dlgText, ()=>{
+        sceneReady = true;
+        if(n===3){
+          // Show buttons
+          actionBtns.classList.add('show');
+          document.getElementById('btn-no').style.display = 'block';
+          initNoButton();
+        }
+      });
+    }, 900);
+  }, 80);
+}
+
+// Advance on tap / keypress
+function advance(){
+  if(!sceneReady) return;
+  if(currentScene < SCENES.length-1){
+    showScene(currentScene+1);
+  }
+}
+
+document.addEventListener('keydown', e=>{
+  if(e.key===' '||e.key==='Enter'||e.key==='ArrowRight') advance();
+});
+document.addEventListener('touchend', e=>{
+  // Don't advance if tapping a button
+  if(e.target.closest('button')) return;
+  advance();
+});
+document.addEventListener('click', e=>{
+  if(e.target.closest('button')) return;
+  advance();
+});
+
+// ════════════════════════════════════════════
+//  NO BUTTON DODGE LOGIC
+// ════════════════════════════════════════════
+const teaseMessages = [
+  '> INVALID CHOICE...',
+  '> THE FROGS WILL MOURN... 🐸',
+  '> MUSHROOMS DEEPLY SADDENED 🍄',
+  '> ERROR: WRONG ANSWER DETECTED',
+  '> THE FOREST BELIEVES IN YOU 🌿',
+  '> FROG.EXE IS TREMBLING...',
+  '> HE IS COVERING HIS EYES 🐸',
+  '> PLEASE... THE FIREFLIES BEG ✨',
+];
+let noCount=0, noReady=false;
+const btnNo=document.getElementById('btn-no');
+
+function initNoButton(){
+  noReady=true;
+  btnNo.style.display='block';
+  setTimeout(placeNoInitial,60);
+}
+function placeNoInitial(){
+  const yes=document.getElementById('btn-yes').getBoundingClientRect();
+  btnNo.style.top=yes.top+'px';
+  btnNo.style.left=(yes.right+16)+'px';
+}
+function moveNo(){
+  const m=20,bw=btnNo.offsetWidth||90,bh=btnNo.offsetHeight||40;
+  let nx,ny,t=0;
+  do{
+    nx=m+Math.random()*(window.innerWidth-bw-m*2);
+    ny=m+Math.random()*(window.innerHeight-bh-m*2);
+    t++;
+  }while(t<25&&nearYes(nx,ny,bw,bh));
+  btnNo.style.transition='top 0.25s steps(4),left 0.25s steps(4)';
+  btnNo.style.top=ny+'px';btnNo.style.left=nx+'px';
+}
+function nearYes(x,y,bw,bh){
+  const r=document.getElementById('btn-yes').getBoundingClientRect();
+  return !(x+bw<r.left-20||x>r.right+20||y+bh<r.top-20||y>r.bottom+20);
+}
+function onNoDodge(e){
+  if(!noReady)return;
+  if(e)e.preventDefault();
+  noCount++;
+  teaseLine.textContent=teaseMessages[Math.min(noCount-1,teaseMessages.length-1)];
+  teaseLine.classList.add('show');
+  btnNo.style.transform=`scale(${Math.max(0.65,1-noCount*0.04)})`;
+
+  if(noCount>=3){
+    drawSprite(frogCanvas,SHY);
+    setFrogAnim('frog-shy');
+    setTimeout(()=>{
+      drawSprite(frogCanvas,B24);
+      setFrogAnim('frog-idle');
+    },1400);
+  }
+  moveNo();
+}
+btnNo.addEventListener('touchstart',onNoDodge,{passive:false});
+btnNo.addEventListener('mouseover',onNoDodge);
+btnNo.addEventListener('click',e=>{e.preventDefault();onNoDodge(e);});
+window.addEventListener('resize',()=>{
+  if(noReady) placeNoInitial();
+  if(dialogue.classList.contains('show')) positionBubble();
+});
+
+// ── YES ──
+function sayYes(){
+  document.getElementById('yes-screen').classList.add('show');
+  btnNo.style.display='none';
+  drawSprite(yesFrog,HAPPY);
+  launchConfetti();
+}
+
+// ── CONFETTI ──
+const pool=['🐸','🍄','🌻','🌿','✨','💚','⭐','🌕'];
+function launchConfetti(){
+  for(let i=0;i<80;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='confetti-piece';
+      el.textContent=pool[Math.floor(Math.random()*pool.length)];
+      el.style.left=(Math.random()*100)+'vw';
+      el.style.setProperty('--cf',(2+Math.random()*2.5)+'s');
+      el.style.setProperty('--cs',(Math.random()*720-360)+'deg');
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),5000);
+    },i*45);
+  }
+}
+
+// ── START ──
+// Initial placement off screen
+frogChar.style.left = '-12vw';
+frogChar.style.bottom = '18%';
+showScene(0);
+</script>
+</body>
+</html>
