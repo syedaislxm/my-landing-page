@@ -1310,5 +1310,18 @@ frogChar.style.left = '-12vw';
 frogChar.style.bottom = '18%';
 showScene(0);
 </script>
+<!-- Add this before </body> -->
+<button onclick="testFrogs()" style="position:fixed;top:50px;right:12px;z-index:100;padding:8px;font-size:10px;background:#7ab870;border:2px solid #000;">TEST FROGS</button>
+
+<script>
+function testFrogs() {
+  console.log('Testing frog sprites...');
+  drawSprite(frogCanvas, B24);     // Base
+  setTimeout(() => drawSprite(frogCanvas, WAVE), 1000);
+  setTimeout(() => drawSprite(frogCanvas, HAPPY), 2000);
+  setTimeout(() => drawSprite(frogCanvas, SHY), 3000);
+  setTimeout(() => drawSprite(frogCanvas, GLASSES), 4000);
+}
+</script>
 </body>
 </html>
