@@ -1,88 +1,557 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frog Sprite Test</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
-    <style>
-        body { margin: 0; background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        canvas { border: 2px solid #444; image-rendering: pixelated; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐸 Frog Sprite Viewer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --forest-dark:  #0d1f0e;
+      --forest-mid:   #1a3d1f;
+      --forest-green: #2d6a35;
+      --leaf:         #4a9e52;
+      --lime:         #a8ff78;
+      --pale:         #c8f0b0;
+      --gold:         #f5c842;
+      --panel-bg:     rgba(10, 28, 12, 0.85);
+      --border:       rgba(168, 255, 120, 0.2);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--forest-dark);
+      font-family: 'Press Start 2P', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--pale);
+    }
+
+    /* Animated forest background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 80%, rgba(45,106,53,0.4) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(26,61,31,0.5) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(13,31,14,0.8) 0%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Firefly particles */
+    .firefly {
+      position: fixed;
+      width: 3px;
+      height: 3px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: float linear infinite;
+      opacity: 0;
+      z-index: 1;
+      box-shadow: 0 0 6px var(--gold);
+    }
+
+    @keyframes float {
+      0%   { transform: translate(0,0);       opacity: 0; }
+      20%  { opacity: 0.8; }
+      80%  { opacity: 0.6; }
+      100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+    }
+
+    /* Layout */
+    .wrapper {
+      position: relative;
+      z-index: 2;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-size: clamp(12px, 2vw, 18px);
+      color: var(--lime);
+      text-shadow: 0 0 20px rgba(168,255,120,0.5);
+      letter-spacing: 2px;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 8px;
+      color: rgba(200,240,176,0.5);
+      letter-spacing: 1px;
+    }
+
+    /* Main stage */
+    .stage {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    /* Frog display panel */
+    .display-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      background:
+        radial-gradient(ellipse at 50% 80%, rgba(45,106,53,0.3) 0%, transparent 70%),
+        repeating-linear-gradient(
+          0deg, transparent, transparent 3px,
+          rgba(168,255,120,0.02) 3px, rgba(168,255,120,0.02) 4px
+        );
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    canvas#frogCanvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* Ground shadow under frog */
+    .ground-shadow {
+      width: 100px;
+      height: 10px;
+      background: radial-gradient(ellipse, rgba(0,0,0,0.5) 0%, transparent 70%);
+      margin: -0.5rem auto 0;
+    }
+
+    .anim-name {
+      font-size: 11px;
+      color: var(--lime);
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(168,255,120,0.6);
+      text-align: center;
+    }
+
+    .frame-info {
+      font-size: 7px;
+      color: rgba(168,255,120,0.4);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    /* Speed control */
+    .speed-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .speed-row label {
+      font-size: 7px;
+      color: rgba(200,240,176,0.6);
+      white-space: nowrap;
+    }
+
+    .speed-row input[type=range] {
+      flex: 1;
+      accent-color: var(--lime);
+      cursor: pointer;
+    }
+
+    .speed-row span {
+      font-size: 7px;
+      color: var(--lime);
+      min-width: 42px;
+      text-align: right;
+    }
+
+    /* Scale toggle */
+    .scale-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .scale-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      padding: 6px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: rgba(200,240,176,0.5);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .scale-btn:hover, .scale-btn.active {
+      background: rgba(168,255,120,0.15);
+      border-color: var(--lime);
+      color: var(--lime);
+    }
+
+    /* Sidebar - animation list */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .group-label {
+      font-size: 7px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      padding: 0 4px;
+      border-left: 2px solid var(--gold);
+      padding-left: 8px;
+      margin-top: 0.5rem;
+    }
+
+    .group-label:first-child { margin-top: 0; }
+
+    .anim-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .anim-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      padding: 8px 6px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: rgba(200,240,176,0.6);
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      line-height: 1.8;
+      letter-spacing: 0.5px;
+    }
+
+    .anim-btn:hover {
+      background: rgba(168,255,120,0.1);
+      border-color: rgba(168,255,120,0.5);
+      color: var(--pale);
+    }
+
+    .anim-btn.active {
+      background: rgba(168,255,120,0.2);
+      border-color: var(--lime);
+      color: var(--lime);
+      text-shadow: 0 0 8px rgba(168,255,120,0.5);
+    }
+
+    /* Spritesheet reference toggle */
+    .sheet-toggle {
+      margin-top: 2rem;
+      text-align: center;
+    }
+
+    .sheet-toggle button {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      padding: 10px 16px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: rgba(200,240,176,0.5);
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 1px;
+    }
+
+    .sheet-toggle button:hover {
+      border-color: var(--lime);
+      color: var(--lime);
+    }
+
+    .sheet-preview {
+      display: none;
+      margin-top: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .sheet-preview img {
+      display: block;
+      width: 100%;
+      image-rendering: pixelated;
+      background: #111;
+    }
+
+    .sheet-preview.visible { display: block; }
+
+    /* Responsive */
+    @media (max-width: 680px) {
+      .stage {
+        grid-template-columns: 1fr;
+      }
+      .anim-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
 </head>
 <body>
+
+<div class="wrapper">
+  <header>
+    <h1>✦ FROG SPRITE VIEWER ✦</h1>
+    <p>enchanted forest — sprite debug tool</p>
+  </header>
+
+  <div class="stage">
+
+    <!-- Left: display -->
+    <div class="display-panel">
+      <div class="canvas-wrap">
+        <canvas id="frogCanvas" width="170" height="170"></canvas>
+        <div class="ground-shadow"></div>
+      </div>
+
+      <div class="anim-name" id="animName">IDLE</div>
+      <div class="frame-info" id="frameInfo">frame 1 / 1 &nbsp;|&nbsp; row 0, col 0</div>
+
+      <div class="speed-row">
+        <label>SPEED</label>
+        <input type="range" id="speedSlider" min="60" max="700" value="180" step="10">
+        <span id="speedVal">180ms</span>
+      </div>
+
+      <div class="scale-row">
+        <button class="scale-btn" data-scale="1">1×</button>
+        <button class="scale-btn active" data-scale="2">2×</button>
+        <button class="scale-btn" data-scale="3">3×</button>
+        <button class="scale-btn" data-scale="4">4×</button>
+      </div>
+    </div>
+
+    <!-- Right: animation list -->
+    <div class="sidebar" id="sidebar"></div>
+
+  </div>
+
+  <!-- Spritesheet reference -->
+  <div class="sheet-toggle">
+    <button id="sheetToggle">▼ VIEW FULL SPRITESHEET</button>
+    <div class="sheet-preview" id="sheetPreview">
+      <img src="frog-sprites-transparent.png" alt="Full spritesheet">
+    </div>
+  </div>
+</div>
+
 <script>
-    const config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        backgroundColor: '#2d6a35',
-        pixelArt: true,
-        scene: {
-            preload: preload,
-            create: create
-        }
-    };
+  // ── Spritesheet config ──────────────────────────────────────────────────────
+  const FRAME_W = 170;
+  const FRAME_H = 170;
 
-    const game = new Phaser.Game(config);
-
-    function preload() {
-        this.load.spritesheet('frog', 'frog-sprites.png', {
-            frameWidth: 170,
-            frameHeight: 170
-        });
+  const ANIMATION_GROUPS = [
+    {
+      label: 'IDLE',
+      anims: [
+        { name: 'Idle',        row: 0, frames: [0] },
+        { name: 'Idle Blink',  row: 0, frames: [0,1,2,1,0] },
+        { name: 'Wink',        row: 0, frames: [3,4,3] },
+        { name: 'Glasses',     row: 0, frames: [4] },
+        { name: 'Sparkle',     row: 0, frames: [5] },
+      ]
+    },
+    {
+      label: 'MOVEMENT',
+      anims: [
+        { name: 'Walk Left',   row: 1, frames: [0,1,2,3,4,5] },
+        { name: 'Walk Right',  row: 2, frames: [0,1,2,3,4,5] },
+      ]
+    },
+    {
+      label: 'EXPRESSIONS',
+      anims: [
+        { name: 'Wise Smile',  row: 3, frames: [0] },
+        { name: 'Happy',       row: 3, frames: [1] },
+        { name: 'Thinking',    row: 3, frames: [2] },
+        { name: 'Surprised',   row: 3, frames: [3] },
+        { name: 'Embarrassed', row: 3, frames: [4] },
+        { name: 'Celebrate',   row: 3, frames: [5] },
+      ]
+    },
+    {
+      label: 'ACTIONS',
+      anims: [
+        { name: 'Pointing',    row: 4, frames: [0] },
+        { name: 'Waving',      row: 4, frames: [1] },
+        { name: 'Hop Up',      row: 4, frames: [2] },
+        { name: 'Landing',     row: 4, frames: [3] },
+        { name: 'Turn',        row: 4, frames: [4] },
+        { name: 'Sitting',     row: 4, frames: [5] },
+      ]
+    },
+    {
+      label: 'SPECIALS',
+      anims: [
+        { name: 'Proclaim',    row: 5, frames: [0] },
+        { name: 'Nod',         row: 5, frames: [1] },
+        { name: 'Winking',     row: 5, frames: [2] },
+        { name: 'Looking',     row: 5, frames: [3] },
+        { name: 'Bum Bounce',  row: 5, frames: [4,4,4] },
+        { name: 'Sleeping',    row: 5, frames: [5] },
+      ]
     }
+  ];
 
-    function create() {
-        // Row 0 - idle variants (frames 0-5)
-        this.anims.create({
-            key: 'idle',
-            frames: [{ key: 'frog', frame: 0 }],
-            frameRate: 1,
-            repeat: -1
-        });
+  // ── Canvas setup ────────────────────────────────────────────────────────────
+  const canvas  = document.getElementById('frogCanvas');
+  const ctx     = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
 
-        // Row 1 - walk left (frames 6-10, frame 11 is a plain walk)
-        this.anims.create({
-            key: 'walk_left',
-            frames: this.anims.generateFrameNumbers('frog', { start: 6, end: 10 }),
-            frameRate: 8,
-            repeat: -1
-        });
+  const img = new Image();
+  img.src = 'frog-sprites-transparent.png';
 
-        // Row 2 - walk right (frames 12-16)
-        this.anims.create({
-            key: 'walk_right',
-            frames: this.anims.generateFrameNumbers('frog', { start: 12, end: 16 }),
-            frameRate: 8,
-            repeat: -1
-        });
+  let currentAnim  = ANIMATION_GROUPS[0].anims[0];
+  let frameIdx     = 0;
+  let speed        = 180;
+  let scale        = 2;
+  let animInterval = null;
 
-        // Row 3 - expressions (frames 18-23)
-        this.anims.create({
-            key: 'happy',
-            frames: [{ key: 'frog', frame: 19 }],
-            frameRate: 1,
-            repeat: -1
-        });
+  function setScale(s) {
+    scale = s;
+    canvas.width  = FRAME_W * scale;
+    canvas.height = FRAME_H * scale;
+    ctx.imageSmoothingEnabled = false;
+    drawFrame();
+    document.querySelectorAll('.scale-btn').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.scale) === scale);
+    });
+  }
 
-        this.anims.create({
-            key: 'surprised',
-            frames: [{ key: 'frog', frame: 21 }],
-            frameRate: 1,
-            repeat: -1
-        });
+  function drawFrame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const col = currentAnim.frames[frameIdx];
+    const row = currentAnim.row;
+    ctx.drawImage(
+      img,
+      col * FRAME_W, row * FRAME_H, FRAME_W, FRAME_H,
+      0, 0, FRAME_W * scale, FRAME_H * scale
+    );
+    document.getElementById('animName').textContent = currentAnim.name.toUpperCase();
+    document.getElementById('frameInfo').textContent =
+      `frame ${frameIdx + 1} / ${currentAnim.frames.length}  |  row ${currentAnim.row}, col ${col}`;
+  }
 
-        // Place frogs
-        const idleFrog = this.add.sprite(200, 300, 'frog').setScale(2);
-        const walkFrog  = this.add.sprite(500, 300, 'frog').setScale(2);
+  function playAnim(anim) {
+    currentAnim = anim;
+    frameIdx    = 0;
+    clearInterval(animInterval);
 
-        idleFrog.play('idle');
-        walkFrog.play('walk_left');
+    // Highlight active button
+    document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('anim-' + anim.name.replace(/\s/g,'-'));
+    if (btn) btn.classList.add('active');
 
-        this.add.text(160, 420, 'Idle', { fontSize: '18px', fill: '#a8ff78' });
-        this.add.text(450, 420, 'Walk Left', { fontSize: '18px', fill: '#a8ff78' });
+    drawFrame();
+
+    if (anim.frames.length > 1) {
+      animInterval = setInterval(() => {
+        frameIdx = (frameIdx + 1) % currentAnim.frames.length;
+        drawFrame();
+      }, speed);
     }
+  }
+
+  // ── Build sidebar ───────────────────────────────────────────────────────────
+  const sidebar = document.getElementById('sidebar');
+
+  ANIMATION_GROUPS.forEach(group => {
+    const label = document.createElement('div');
+    label.className = 'group-label';
+    label.textContent = group.label;
+    sidebar.appendChild(label);
+
+    const grid = document.createElement('div');
+    grid.className = 'anim-grid';
+
+    group.anims.forEach(anim => {
+      const btn = document.createElement('button');
+      btn.className = 'anim-btn';
+      btn.id = 'anim-' + anim.name.replace(/\s/g,'-');
+      btn.textContent = anim.name.toUpperCase();
+      btn.onclick = () => playAnim(anim);
+      grid.appendChild(btn);
+    });
+
+    sidebar.appendChild(grid);
+  });
+
+  // ── Speed slider ────────────────────────────────────────────────────────────
+  document.getElementById('speedSlider').addEventListener('input', e => {
+    speed = parseInt(e.target.value);
+    document.getElementById('speedVal').textContent = speed + 'ms';
+    if (currentAnim.frames.length > 1) {
+      clearInterval(animInterval);
+      animInterval = setInterval(() => {
+        frameIdx = (frameIdx + 1) % currentAnim.frames.length;
+        drawFrame();
+      }, speed);
+    }
+  });
+
+  // ── Scale buttons ───────────────────────────────────────────────────────────
+  document.querySelectorAll('.scale-btn').forEach(btn => {
+    btn.addEventListener('click', () => setScale(parseInt(btn.dataset.scale)));
+  });
+
+  // ── Spritesheet toggle ──────────────────────────────────────────────────────
+  document.getElementById('sheetToggle').addEventListener('click', () => {
+    const preview = document.getElementById('sheetPreview');
+    const btn     = document.getElementById('sheetToggle');
+    preview.classList.toggle('visible');
+    btn.textContent = preview.classList.contains('visible')
+      ? '▲ HIDE SPRITESHEET'
+      : '▼ VIEW FULL SPRITESHEET';
+  });
+
+  // ── Fireflies ───────────────────────────────────────────────────────────────
+  for (let i = 0; i < 18; i++) {
+    const f = document.createElement('div');
+    f.className = 'firefly';
+    f.style.left = Math.random() * 100 + 'vw';
+    f.style.top  = Math.random() * 100 + 'vh';
+    f.style.setProperty('--dx', (Math.random() * 200 - 100) + 'px');
+    f.style.setProperty('--dy', (Math.random() * 200 - 100) + 'px');
+    f.style.animationDuration = (4 + Math.random() * 8) + 's';
+    f.style.animationDelay    = (Math.random() * 6) + 's';
+    document.body.appendChild(f);
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  img.onload = () => {
+    setScale(2);
+    playAnim(ANIMATION_GROUPS[0].anims[0]);
+  };
+
+  img.onerror = () => {
+    ctx.fillStyle = 'rgba(168,255,120,0.3)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#a8ff78';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('IMAGE NOT FOUND', canvas.width/2, canvas.height/2 - 10);
+    ctx.fillText('frog-sprites-transparent.png', canvas.width/2, canvas.height/2 + 10);
+  };
 </script>
 </body>
 </html>
