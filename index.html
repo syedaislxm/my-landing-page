@@ -396,7 +396,6 @@
         { name: 'Waving',      row: 4, frames: [1] },
         { name: 'Hop Up',      row: 4, frames: [2] },
         { name: 'Landing',     row: 4, frames: [3] },
-        { name: 'Turn',        row: 4, frames: [4] },
         { name: 'Sitting',     row: 4, frames: [5] },
       ]
     },
@@ -407,7 +406,7 @@
         { name: 'Nod',         row: 5, frames: [1] },
         { name: 'Winking',     row: 5, frames: [2] },
         { name: 'Looking',     row: 5, frames: [3] },
-        { name: 'Bum Bounce',  row: 5, frames: [4,4,4] },
+        { name: 'Turn & Bounce', row: null, frameCoords: [{r:4,c:4},{r:5,c:4},{r:5,c:4},{r:5,c:4},{r:4,c:4}] },
         { name: 'Sleeping',    row: 5, frames: [5] },
       ]
     }
@@ -438,18 +437,26 @@
     });
   }
 
+  function getCoord() {
+    if (currentAnim.frameCoords) return currentAnim.frameCoords[frameIdx];
+    return { r: currentAnim.row, c: currentAnim.frames[frameIdx] };
+  }
+
+  function totalFrames() {
+    return currentAnim.frameCoords ? currentAnim.frameCoords.length : currentAnim.frames.length;
+  }
+
   function drawFrame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const col = currentAnim.frames[frameIdx];
-    const row = currentAnim.row;
+    const { r, c } = getCoord();
     ctx.drawImage(
       img,
-      col * FRAME_W, row * FRAME_H, FRAME_W, FRAME_H,
+      c * FRAME_W, r * FRAME_H, FRAME_W, FRAME_H,
       0, 0, FRAME_W * scale, FRAME_H * scale
     );
     document.getElementById('animName').textContent = currentAnim.name.toUpperCase();
     document.getElementById('frameInfo').textContent =
-      `frame ${frameIdx + 1} / ${currentAnim.frames.length}  |  row ${currentAnim.row}, col ${col}`;
+      `frame ${frameIdx + 1} / ${totalFrames()}  |  row ${r}, col ${c}`;
   }
 
   function playAnim(anim) {
@@ -464,9 +471,9 @@
 
     drawFrame();
 
-    if (anim.frames.length > 1) {
+    if (totalFrames() > 1) {
       animInterval = setInterval(() => {
-        frameIdx = (frameIdx + 1) % currentAnim.frames.length;
+        frameIdx = (frameIdx + 1) % totalFrames();
         drawFrame();
       }, speed);
     }
@@ -500,10 +507,10 @@
   document.getElementById('speedSlider').addEventListener('input', e => {
     speed = parseInt(e.target.value);
     document.getElementById('speedVal').textContent = speed + 'ms';
-    if (currentAnim.frames.length > 1) {
+    if (totalFrames() > 1) {
       clearInterval(animInterval);
       animInterval = setInterval(() => {
-        frameIdx = (frameIdx + 1) % currentAnim.frames.length;
+        frameIdx = (frameIdx + 1) % totalFrames();
         drawFrame();
       }, speed);
     }
